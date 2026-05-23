@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Edit2, Star, X, Link, UserCheck, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, Edit2, Star, X, Link, UserCheck, AlertCircle, Trophy } from 'lucide-react'
 import {
   getAchievements,
   createAchievement,
@@ -23,12 +23,21 @@ const CATEGORY_LABELS: Record<AchievementCategory, string> = {
 }
 
 const CATEGORY_COLORS: Record<AchievementCategory, string> = {
-  academic: 'bg-blue-100 text-blue-700',
-  extracurricular: 'bg-green-100 text-green-700',
-  leadership: 'bg-purple-100 text-purple-700',
-  community: 'bg-orange-100 text-orange-700',
-  work: 'bg-slate-100 text-slate-700',
-  other: 'bg-gray-100 text-gray-600',
+  academic: 'bg-blue-50 text-blue-700 border-blue-100',
+  extracurricular: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  leadership: 'bg-purple-50 text-purple-700 border-purple-100',
+  community: 'bg-orange-50 text-orange-700 border-orange-100',
+  work: 'bg-slate-100 text-slate-600 border-slate-200',
+  other: 'bg-stone-100 text-stone-500 border-stone-200',
+}
+
+const CATEGORY_STAT_COLORS: Record<AchievementCategory, { number: string; dot: string }> = {
+  academic: { number: 'text-blue-600', dot: 'bg-blue-400' },
+  extracurricular: { number: 'text-emerald-600', dot: 'bg-emerald-400' },
+  leadership: { number: 'text-purple-600', dot: 'bg-purple-400' },
+  community: { number: 'text-orange-500', dot: 'bg-orange-400' },
+  work: { number: 'text-slate-600', dot: 'bg-slate-400' },
+  other: { number: 'text-stone-500', dot: 'bg-stone-400' },
 }
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as AchievementCategory[]
@@ -77,10 +86,11 @@ function AchievementForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1">
-          タイトル <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-slate-600 mb-1.5">
+          タイトル <span className="text-rose-500">*</span>
         </label>
         <input
           className="input"
@@ -91,13 +101,16 @@ function AchievementForm({
         />
       </div>
 
+      {/* Category + Date — 2-col */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">カテゴリ</label>
+          <label className="block text-sm font-medium text-slate-600 mb-1.5">カテゴリ</label>
           <select
             className="select"
             value={form.category}
-            onChange={e => setForm(f => ({ ...f, category: e.target.value as AchievementCategory }))}
+            onChange={e =>
+              setForm(f => ({ ...f, category: e.target.value as AchievementCategory }))
+            }
           >
             {ALL_CATEGORIES.map(c => (
               <option key={c} value={c}>
@@ -107,7 +120,9 @@ function AchievementForm({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">日付（任意）</label>
+          <label className="block text-sm font-medium text-slate-600 mb-1.5">
+            日付（任意）
+          </label>
           <input
             type="date"
             className="input"
@@ -117,8 +132,9 @@ function AchievementForm({
         </div>
       </div>
 
+      {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1">説明</label>
+        <label className="block text-sm font-medium text-slate-600 mb-1.5">説明</label>
         <textarea
           className="textarea"
           rows={3}
@@ -128,11 +144,15 @@ function AchievementForm({
         />
       </div>
 
+      {/* Impact */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1">
-          アピールポイント（数値化）
+        <label className="block text-sm font-medium text-slate-600 mb-1.5">
+          アピールポイント
+          <span className="ml-1.5 text-xs font-normal text-slate-400">数値化してください</span>
         </label>
-        <p className="text-xs text-slate-400 mb-1">例：「参加者150名・満足度95%」「資金調達318万円・目標比112%」</p>
+        <p className="text-xs text-slate-400 mb-1.5 leading-relaxed">
+          例：「参加者150名・満足度95%」「資金調達318万円・目標比112%」
+        </p>
         <textarea
           className="textarea"
           rows={3}
@@ -142,11 +162,15 @@ function AchievementForm({
         />
       </div>
 
+      {/* Evidence URL */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1 flex items-center gap-1">
-          <Link size={13} className="text-blue-500" /> 証跡URL（Evidence）
+        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-600 mb-1.5">
+          <Link size={13} className="text-brand-800" />
+          証跡URL（Evidence）
         </label>
-        <p className="text-xs text-slate-400 mb-1">修了証書PDF・稼働中ウェブサイト・新聞記事URL等。スナップ写真は不可。</p>
+        <p className="text-xs text-slate-400 mb-1.5 leading-relaxed">
+          修了証書PDF・稼働中ウェブサイト・新聞記事URL等。スナップ写真は不可。
+        </p>
         <input
           className="input"
           placeholder="https://... または証跡ファイルへのリンク"
@@ -155,11 +179,15 @@ function AchievementForm({
         />
       </div>
 
+      {/* Validation Contact */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1 flex items-center gap-1">
-          <UserCheck size={13} className="text-green-500" /> 検証用連絡先（Validation Contact）
+        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-600 mb-1.5">
+          <UserCheck size={13} className="text-emerald-600" />
+          検証用連絡先（Validation Contact）
         </label>
-        <p className="text-xs text-slate-400 mb-1">この実績を証明できる第三者（担当教員・外部メンター等）。家族・友人は不可。</p>
+        <p className="text-xs text-slate-400 mb-1.5 leading-relaxed">
+          この実績を証明できる第三者（担当教員・外部メンター等）。家族・友人は不可。
+        </p>
         <input
           className="input"
           placeholder="例：山田先生 / yamada@school.jp"
@@ -168,7 +196,7 @@ function AchievementForm({
         />
       </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-1">
         <button type="submit" className="btn-primary" disabled={isPending}>
           {isPending ? '保存中...' : '保存する'}
         </button>
@@ -233,13 +261,22 @@ function AchievementCard({
     return `${dt.getFullYear()}年${dt.getMonth() + 1}月${dt.getDate()}日`
   }
 
+  // ── Edit mode ──
   if (editing) {
     return (
-      <div className="card border-2 border-blue-100">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-slate-700">実績を編集</h3>
-          <button onClick={() => setEditing(false)} className="text-slate-400 hover:text-slate-600">
-            <X size={18} />
+      <div className="card border-2 border-brand-100 animate-fade-in">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+            <div className="w-6 h-6 bg-brand-50 rounded-lg flex items-center justify-center">
+              <Edit2 size={12} className="text-brand-800" />
+            </div>
+            実績を編集
+          </h3>
+          <button
+            onClick={() => setEditing(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-stone-100 transition-colors"
+          >
+            <X size={16} />
           </button>
         </div>
         <AchievementForm
@@ -252,31 +289,35 @@ function AchievementCard({
     )
   }
 
+  // ── View mode ──
   return (
-    <div className="card flex flex-col gap-3 hover:shadow-md transition-shadow">
-      {/* Header */}
+    <div className="card flex flex-col gap-4 hover:shadow-card-hover transition-shadow duration-200 animate-fade-in">
+      {/* Header row: badge + date + action buttons */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`badge ${CATEGORY_COLORS[achievement.category]}`}>
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className={`badge border ${CATEGORY_COLORS[achievement.category]}`}>
               {CATEGORY_LABELS[achievement.category]}
             </span>
             {achievement.date && (
               <span className="text-xs text-slate-400">{formatDate(achievement.date)}</span>
             )}
           </div>
-          <h3 className="font-semibold text-slate-800 leading-snug">{achievement.title}</h3>
+          <h3 className="font-semibold text-slate-800 leading-snug text-base">
+            {achievement.title}
+          </h3>
         </div>
+        {/* Action buttons */}
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-brand-800 hover:bg-brand-50 transition-colors"
             onClick={() => setEditing(true)}
             title="編集"
           >
-            <Edit2 size={15} />
+            <Edit2 size={14} />
           </button>
           <button
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
             onClick={() => {
               if (confirm(`「${achievement.title}」を削除しますか？`)) {
                 deleteMutation.mutate()
@@ -285,7 +326,7 @@ function AchievementCard({
             disabled={deleteMutation.isPending}
             title="削除"
           >
-            <Trash2 size={15} />
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
@@ -295,36 +336,45 @@ function AchievementCard({
         <p className="text-sm text-slate-600 leading-relaxed">{achievement.description}</p>
       )}
 
-      {/* Impact */}
+      {/* Impact box */}
       {achievement.impact && (
-        <div className="rounded-xl bg-yellow-50 border border-yellow-100 px-3 py-2.5 flex gap-2">
-          <Star size={15} className="text-yellow-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-yellow-800 leading-relaxed">{achievement.impact}</p>
+        <div className="rounded-xl bg-amber-50 border border-amber-100 px-3.5 py-3 flex gap-2.5">
+          <Star size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800 leading-relaxed">{achievement.impact}</p>
         </div>
       )}
 
       {/* Evidence & Validation */}
-      <div className="flex flex-col gap-1.5 mt-1">
+      <div className="flex flex-col gap-2 pt-1 border-t border-stone-50">
+        {/* Evidence URL */}
         {achievement.evidence_url ? (
           <div className="flex items-center gap-2 text-xs">
-            <Link size={12} className="text-blue-500 flex-shrink-0" />
-            <a href={achievement.evidence_url} target="_blank" rel="noopener noreferrer"
-               className="text-blue-600 hover:underline truncate">{achievement.evidence_url}</a>
+            <Link size={12} className="text-brand-800 flex-shrink-0" />
+            <a
+              href={achievement.evidence_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-800 hover:underline truncate font-medium"
+            >
+              {achievement.evidence_url}
+            </a>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-2 py-1">
-            <AlertCircle size={12} className="flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
+            <AlertCircle size={12} className="flex-shrink-0 text-amber-500" />
             <span>証跡URLが未設定です（出願に必須）</span>
           </div>
         )}
+
+        {/* Validation contact */}
         {achievement.validation_contact ? (
           <div className="flex items-center gap-2 text-xs">
-            <UserCheck size={12} className="text-green-500 flex-shrink-0" />
+            <UserCheck size={12} className="text-emerald-500 flex-shrink-0" />
             <span className="text-slate-600">{achievement.validation_contact}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-2 py-1">
-            <AlertCircle size={12} className="flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
+            <AlertCircle size={12} className="flex-shrink-0 text-amber-500" />
             <span>検証用連絡先が未設定です（出願に必須）</span>
           </div>
         )}
@@ -368,9 +418,7 @@ export default function Achievements() {
   }
 
   const filtered =
-    activeTab === 'all'
-      ? achievements
-      : achievements.filter(a => a.category === activeTab)
+    activeTab === 'all' ? achievements : achievements.filter(a => a.category === activeTab)
 
   const countByCategory = ALL_CATEGORIES.reduce<Record<AchievementCategory, number>>(
     (acc, cat) => {
@@ -389,61 +437,97 @@ export default function Achievements() {
     })),
   ]
 
+  const atMax = achievements.length >= 6
+  const counterColor = atMax
+    ? 'bg-red-50 text-red-700 border-red-200'
+    : achievements.length >= 4
+    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    : 'bg-stone-100 text-slate-600 border-stone-200'
+
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-            <Star size={20} className="text-yellow-600" />
+    <div className="p-8 max-w-5xl mx-auto animate-fade-in">
+
+      {/* ── Page header ── */}
+      <div className="flex items-start justify-between mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          {/* Trophy icon */}
+          <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Trophy size={22} className="text-amber-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">実績・活動（Accomplishments）</h1>
-            <p className="text-slate-500 text-sm">最大6項目（推奨3〜4項目）・証跡URL・検証用連絡先が必須</p>
+            <p className="section-label mb-0.5">ACCOMPLISHMENTS</p>
+            <h1 className="text-2xl font-bold text-slate-800 leading-tight">Achievements</h1>
+            <p className="text-slate-400 text-sm mt-0.5">
+              最大6項目 · 証跡URL · 検証用連絡先が必須
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`text-sm font-semibold px-3 py-1.5 rounded-xl ${achievements.length >= 6 ? 'bg-red-100 text-red-700' : achievements.length >= 4 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-            {achievements.length} / 6 件
-          </div>
+
+        {/* Right side: counter + add button */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <span className={`badge border font-semibold text-sm px-3 py-1 ${counterColor}`}>
+            {achievements.length} / 6件
+          </span>
           <button
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary"
             onClick={() => setShowForm(v => !v)}
-            disabled={achievements.length >= 6}
+            disabled={atMax}
           >
-            {showForm ? <X size={16} /> : <Plus size={16} />}
+            {showForm ? <X size={15} /> : <Plus size={15} />}
             {showForm ? 'キャンセル' : '追加'}
           </button>
         </div>
       </div>
 
-      {achievements.length >= 6 && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-sm text-red-700">
-          <AlertCircle size={16} className="flex-shrink-0" />
-          最大6件に達しました。出願には最も重要な実績を厳選することが推奨されています。
+      {/* ── Max warning banner ── */}
+      {atMax && (
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-5 text-sm text-red-700 animate-fade-in">
+          <AlertCircle size={16} className="flex-shrink-0 text-red-500" />
+          <span>
+            最大6件に達しました。出願には最も重要な実績を厳選することが推奨されています。
+          </span>
         </div>
       )}
 
-      {/* Summary stats */}
+      {/* ── Category stats row (6 mini cards) ── */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
-        {ALL_CATEGORIES.map(cat => (
-          <div key={cat} className="card text-center py-3 px-2">
-            <p className="text-2xl font-bold text-slate-800">{countByCategory[cat]}</p>
-            <p className="text-xs text-slate-500 mt-0.5 leading-tight">{CATEGORY_LABELS[cat]}</p>
-          </div>
-        ))}
+        {ALL_CATEGORIES.map(cat => {
+          const colors = CATEGORY_STAT_COLORS[cat]
+          const count = countByCategory[cat]
+          const isActive = activeTab === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              className={`card text-center py-4 px-2 transition-all duration-150 cursor-pointer hover:shadow-card-hover ${
+                isActive ? 'border-2 border-brand-200 bg-brand-50' : ''
+              }`}
+            >
+              <p className={`text-2xl font-bold ${colors.number}`}>{count}</p>
+              <p className="text-xs text-slate-400 mt-1 leading-tight">{CATEGORY_LABELS[cat]}</p>
+              {count > 0 && (
+                <div className={`w-1.5 h-1.5 ${colors.dot} rounded-full mx-auto mt-1.5 opacity-70`} />
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Add form */}
+      {/* ── Add form (collapsible, premium card) ── */}
       {showForm && (
-        <div className="card mb-6 border-2 border-blue-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-700">新しい実績を追加</h2>
+        <div className="card mb-6 border-2 border-brand-100 animate-fade-in">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-brand-50 rounded-lg flex items-center justify-center">
+                <Plus size={14} className="text-brand-800" />
+              </div>
+              <h2 className="font-semibold text-slate-700">新しい実績を追加</h2>
+            </div>
             <button
               onClick={() => setShowForm(false)}
-              className="text-slate-400 hover:text-slate-600 p-1"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-stone-100 transition-colors"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
           <AchievementForm
@@ -455,46 +539,50 @@ export default function Achievements() {
         </div>
       )}
 
-      {/* Category tabs */}
+      {/* ── Category filter tabs ── */}
       <div className="flex gap-2 flex-wrap mb-6">
-        {tabs.map(tab => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
-              activeTab === tab.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            {tab.label}
-            {tab.count > 0 && (
-              <span
-                className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.value
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.value
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                isActive
+                  ? 'bg-brand-800 text-white shadow-sm'
+                  : 'bg-white border border-stone-200 text-slate-600 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span
+                  className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                    isActive ? 'bg-brand-700 text-white' : 'bg-stone-100 text-slate-500'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Content */}
+      {/* ── Content area ── */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-24 text-slate-400 text-sm gap-2">
+          <div className="w-4 h-4 border-2 border-stone-200 border-t-brand-800 rounded-full animate-spin" />
           読み込み中...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="card text-center py-16">
-          <Star size={40} className="mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500 font-medium">
+        <div className="card text-center py-20 animate-fade-in">
+          <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Trophy size={28} className="text-amber-300" />
+          </div>
+          <p className="text-slate-500 font-semibold text-base">
             {activeTab === 'all' ? '実績がまだありません' : 'このカテゴリの実績はありません'}
           </p>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1.5">
             「追加」ボタンから実績を登録しましょう
           </p>
         </div>

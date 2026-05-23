@@ -59,7 +59,7 @@ function renderContent(text: string): React.ReactNode {
   })
   flushList('end')
 
-  return <>{result}</>
+  return <div className="prose-chat">{result}</div>
 }
 
 function renderInline(text: string): React.ReactNode {
@@ -85,6 +85,23 @@ const SUGGESTED_PROMPTS = [
   'モチベーションが落ちています',
 ]
 
+// ── avatar ─────────────────────────────────────────────────────────────────
+
+function BotAvatar({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
+  if (size === 'lg') {
+    return (
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+        <Bot size={32} className="text-white" />
+      </div>
+    )
+  }
+  return (
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+      <span className="text-white text-xs font-bold">M</span>
+    </div>
+  )
+}
+
 // ── message bubble ─────────────────────────────────────────────────────────
 
 function MessageBubble({ message }: { message: ChatMessage }) {
@@ -92,9 +109,9 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 animate-fade-in">
         <div className="max-w-[75%]">
-          <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-3">
+          <div className="bg-brand-800 text-white rounded-2xl rounded-br-sm px-4 py-3">
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
           </div>
           <p className="text-xs text-slate-400 mt-1 text-right">{formatTime(message.created_at)}</p>
@@ -106,46 +123,71 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   const hasApiKeyNotice = message.content.includes(API_KEY_STUB)
 
   return (
-    <div className="flex items-start gap-3 mb-4">
+    <div className="flex items-start gap-3 mb-4 animate-fade-in">
       {/* Avatar */}
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span className="text-white text-xs font-bold">M</span>
-      </div>
+      <BotAvatar size="sm" />
+
       <div className="max-w-[75%]">
         {hasApiKeyNotice ? (
-          <div className="rounded-2xl rounded-tl-sm border border-orange-200 bg-orange-50 px-4 py-3">
+          /* API key notice — special amber card */
+          <div className="rounded-2xl rounded-tl-sm border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Bot size={16} className="text-orange-500" />
-              <span className="text-sm font-semibold text-orange-700">APIキー未設定</span>
+              <Bot size={15} className="text-amber-600" />
+              <span className="text-sm font-semibold text-amber-700">APIキー未設定</span>
             </div>
-            <p className="text-sm text-orange-700 mb-3 leading-relaxed">
+            <p className="text-sm text-amber-700 mb-3 leading-relaxed">
               AI機能を使用するにはAnthropicのAPIキーが必要です。
             </p>
-            <ol className="text-sm text-orange-700 space-y-1 list-decimal pl-4">
+            <ol className="text-sm text-amber-700 space-y-1.5 list-decimal pl-4">
               <li>
                 <a
                   href="https://console.anthropic.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-orange-900"
+                  className="underline hover:text-amber-900 font-medium"
                 >
                   console.anthropic.com
                 </a>{' '}
                 でAPIキーを取得
               </li>
               <li>
-                サーバーの <code className="bg-orange-100 px-1 rounded">.env</code> ファイルに{' '}
-                <code className="bg-orange-100 px-1 rounded">ANTHROPIC_API_KEY=...</code> を設定
+                サーバーの{' '}
+                <code className="bg-amber-100 px-1 py-0.5 rounded text-xs">
+                  .env
+                </code>{' '}
+                ファイルに{' '}
+                <code className="bg-amber-100 px-1 py-0.5 rounded text-xs">
+                  ANTHROPIC_API_KEY=...
+                </code>{' '}
+                を設定
               </li>
               <li>サーバーを再起動</li>
             </ol>
           </div>
         ) : (
-          <div className="card rounded-2xl rounded-tl-sm p-4 shadow-sm">
+          /* Normal AI message */
+          <div className="bg-white border border-stone-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
             <div className="text-slate-700">{renderContent(message.content)}</div>
           </div>
         )}
         <p className="text-xs text-slate-400 mt-1">{formatTime(message.created_at)}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── typing indicator ────────────────────────────────────────────────────────
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-start gap-3 mb-4 animate-fade-in">
+      <BotAvatar size="sm" />
+      <div className="bg-white border border-stone-100 rounded-2xl rounded-tl-sm px-4 py-3.5 shadow-sm">
+        <div className="flex gap-1.5 items-center h-4">
+          <span className="typing-dot" />
+          <span className="typing-dot" />
+          <span className="typing-dot" />
+        </div>
       </div>
     </div>
   )
@@ -174,7 +216,6 @@ export default function AiTutor() {
       ])
     },
     onError: () => {
-      // refetch as fallback
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] })
     },
   })
@@ -231,21 +272,27 @@ export default function AiTutor() {
     textareaRef.current?.focus()
   }
 
+  const isEmpty = !isLoading && messages.length === 0
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100 flex-shrink-0">
+    <div className="flex flex-col h-screen overflow-hidden bg-stone-50">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-stone-100 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+          {/* Gradient avatar */}
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
             <Bot size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">AIチューター</h1>
-            <p className="text-xs text-slate-500">ミネルバ受験専用パーソナルAIアドバイザー</p>
+            <h1 className="text-base font-bold text-slate-800 leading-tight">AI Tutor</h1>
+            <p className="text-xs text-slate-400 mt-0.5">ミネルバ受験専用パーソナルアドバイザー</p>
           </div>
         </div>
+
+        {/* Clear history button */}
         <button
-          className="btn-secondary flex items-center gap-2 text-sm text-red-500 hover:bg-red-50"
+          className="btn-secondary text-sm text-red-500 hover:bg-red-50 hover:text-red-600"
           onClick={() => {
             if (messages.length === 0) return
             if (confirm('チャット履歴をすべて削除しますか？')) {
@@ -254,36 +301,34 @@ export default function AiTutor() {
           }}
           disabled={clearMutation.isPending || messages.length === 0}
         >
-          <Trash2 size={15} />
+          <Trash2 size={14} />
           履歴削除
         </button>
       </div>
 
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      {/* ── Messages area ── */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 bg-stone-50">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+          <div className="flex items-center justify-center h-full text-slate-400 text-sm gap-2">
+            <div className="w-4 h-4 border-2 border-stone-200 border-t-indigo-500 rounded-full animate-spin" />
             読み込み中...
           </div>
-        ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center">
-              <Bot size={32} className="text-indigo-500" />
-            </div>
+        ) : isEmpty ? (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
+            <BotAvatar size="lg" />
             <div>
-              <p className="text-slate-600 font-semibold text-lg">
-                ミネルバ受験AIアドバイザー
-              </p>
-              <p className="text-slate-400 text-sm mt-1">
-                エッセイ、計画、モチベーションなど何でも相談できます
+              <p className="text-slate-700 font-bold text-xl leading-tight">AI Tutor</p>
+              <p className="text-slate-400 text-sm mt-1.5 leading-relaxed max-w-xs">
+                エッセイ・計画・モチベーションなど<br />何でも相談できます
               </p>
             </div>
-            {/* Suggested prompts in empty state */}
-            <div className="grid grid-cols-2 gap-2 max-w-md w-full mt-2">
+            {/* 2×2 suggested prompt grid */}
+            <div className="grid grid-cols-2 gap-2.5 max-w-sm w-full mt-1">
               {SUGGESTED_PROMPTS.map(prompt => (
                 <button
                   key={prompt}
-                  className="text-sm bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                  className="text-sm bg-white border border-stone-200 rounded-xl px-4 py-3 text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left shadow-sm"
                   onClick={() => handleSuggest(prompt)}
                 >
                   {prompt}
@@ -296,35 +341,23 @@ export default function AiTutor() {
             {messages.map(msg => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
-            {/* Pending indicator */}
-            {sendMutation.isPending && (
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-xs font-bold">M</span>
-                </div>
-                <div className="card rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-                  <div className="flex gap-1 items-center h-5">
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Typing indicator */}
+            {sendMutation.isPending && <TypingIndicator />}
             <div ref={bottomRef} />
           </>
         )}
       </div>
 
-      {/* Input area */}
-      <div className="flex-shrink-0 bg-white border-t border-slate-100 px-6 py-4">
-        {/* Suggested prompts chips */}
+      {/* ── Input area ── */}
+      <div className="flex-shrink-0 bg-white border-t border-stone-100 px-6 py-4">
+
+        {/* Suggested prompt chips (shown when conversation exists) */}
         {messages.length > 0 && (
           <div className="flex gap-2 flex-wrap mb-3">
             {SUGGESTED_PROMPTS.map(prompt => (
               <button
                 key={prompt}
-                className="text-xs bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-600 px-3 py-1.5 rounded-full transition-colors"
+                className="text-xs bg-stone-100 text-slate-600 px-3 py-1.5 rounded-full transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-40"
                 onClick={() => handleSuggest(prompt)}
                 disabled={sendMutation.isPending}
               >
@@ -334,12 +367,12 @@ export default function AiTutor() {
           </div>
         )}
 
-        {/* Text input row */}
+        {/* Input row */}
         <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
-              className="textarea pr-3 leading-relaxed"
+              className="textarea pr-10 leading-relaxed"
               rows={2}
               placeholder="メッセージを入力… (Enterで送信、Shift+Enterで改行)"
               value={input}
@@ -348,9 +381,10 @@ export default function AiTutor() {
               disabled={sendMutation.isPending}
               style={{ resize: 'none' }}
             />
+            {/* Clear textarea button */}
             {input.length > 0 && (
               <button
-                className="absolute right-2 top-2 p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-2.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-stone-100 transition-colors"
                 onClick={() => setInput('')}
                 tabIndex={-1}
               >
@@ -358,8 +392,10 @@ export default function AiTutor() {
               </button>
             )}
           </div>
+
+          {/* Send button */}
           <button
-            className="btn-primary flex items-center gap-2 flex-shrink-0 h-[56px] px-5"
+            className="btn-primary flex-shrink-0 h-[56px] px-5"
             onClick={handleSend}
             disabled={!input.trim() || sendMutation.isPending}
           >

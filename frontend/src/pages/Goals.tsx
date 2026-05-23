@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Plus, Trash2, Target } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, Target, X } from 'lucide-react'
 import {
   getGoals,
   createGoal,
@@ -22,15 +22,33 @@ const STATUS_LABEL: Record<Goal['status'], string> = {
 }
 
 const STATUS_BADGE: Record<Goal['status'], string> = {
-  not_started: 'bg-slate-100 text-slate-600',
-  in_progress: 'bg-blue-100 text-blue-700',
-  done: 'bg-green-100 text-green-700',
+  not_started: 'bg-stone-100 text-slate-500',
+  in_progress: 'bg-brand-50 text-brand-700',
+  done: 'bg-emerald-50 text-emerald-600',
 }
 
 const STATUS_PROGRESS_BAR: Record<Goal['status'], string> = {
-  not_started: 'bg-slate-300',
-  in_progress: 'bg-blue-500',
-  done: 'bg-green-500',
+  not_started: 'bg-stone-300',
+  in_progress: 'bg-brand-800',
+  done: 'bg-emerald-500',
+}
+
+const STATUS_PROGRESS_NUM: Record<Goal['status'], string> = {
+  not_started: 'text-slate-300',
+  in_progress: 'text-brand-800',
+  done: 'text-emerald-500',
+}
+
+const STATUS_SLIDER_ACCENT: Record<Goal['status'], string> = {
+  not_started: 'accent-slate-400',
+  in_progress: 'accent-rose-800',
+  done: 'accent-emerald-500',
+}
+
+const STATUS_LEFT_BORDER: Record<Goal['status'], string> = {
+  not_started: 'border-l-stone-200',
+  in_progress: 'border-l-brand-800',
+  done: 'border-l-emerald-400',
 }
 
 export default function Goals() {
@@ -125,73 +143,111 @@ export default function Goals() {
   }, [goals, totalCount])
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 md:p-8 max-w-3xl mx-auto animate-fade-in">
+
+      {/* ── Page Header ─────────────────────────────────── */}
+      <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">月別目標</h1>
-          <p className="text-slate-500 text-sm mt-0.5">月ごとの目標を設定・管理しましょう</p>
+          <p className="section-label mb-1.5">MONTHLY GOALS</p>
+          <h1 className="text-2xl font-bold text-slate-800 leading-tight tracking-tight">
+            月別目標
+          </h1>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="btn-secondary flex items-center gap-1.5 text-sm"
+          className="btn-secondary text-sm"
         >
-          <Plus size={15} />
+          <Plus size={14} />
           目標を追加
         </button>
       </div>
 
-      {/* Month Navigation */}
+      {/* ── Month Navigation & Summary ───────────────────── */}
       <div className="card mb-4">
-        <div className="flex items-center justify-between mb-4">
+        {/* Month selector */}
+        <div className="flex items-center justify-between">
           <button
             onClick={prevMonth}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-700 transition-colors"
+            aria-label="前の月"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={17} />
           </button>
-          <span className="text-lg font-semibold text-slate-800">
+
+          <span className="text-xl font-bold text-slate-800 tracking-tight">
             {year}年{month}月
           </span>
+
           <button
             onClick={nextMonth}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-700 transition-colors"
+            aria-label="次の月"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={17} />
           </button>
         </div>
 
-        {/* Month Summary */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Target size={16} className="text-blue-500" />
-            <span className="text-sm text-slate-600">
-              <span className="font-semibold text-slate-800">{totalCount}個</span>の目標 /{' '}
-              <span className="font-semibold text-green-600">{doneCount}個</span>達成
-            </span>
-          </div>
-          {totalCount > 0 && (
-            <div className="flex-1 flex items-center gap-2">
-              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                  style={{ width: `${overallProgress}%` }}
-                />
+        {/* Summary stats + overall progress */}
+        <div className="mt-5 pt-5 border-t border-stone-100">
+          <div className="flex items-center gap-5 mb-3">
+            {/* Total */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-lg bg-stone-100 flex items-center justify-center">
+                <Target size={12} className="text-slate-400" />
               </div>
-              <span className="text-xs font-medium text-slate-600 w-10 text-right">
-                {overallProgress}%
-              </span>
+              <span className="text-xs text-slate-400">合計</span>
+              <span className="text-sm font-bold text-slate-800 tabular-nums">{totalCount}</span>
+            </div>
+
+            {/* Achieved */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              </div>
+              <span className="text-xs text-slate-400">達成</span>
+              <span className="text-sm font-bold text-emerald-600 tabular-nums">{doneCount}</span>
+            </div>
+
+            {totalCount > 0 && (
+              <div className="ml-auto text-right">
+                <span className="text-lg font-black text-brand-800 tabular-nums leading-none">
+                  {overallProgress}
+                  <span className="text-sm font-semibold opacity-60">%</span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Overall progress bar */}
+          {totalCount > 0 && (
+            <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-800 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${overallProgress}%` }}
+              />
             </div>
           )}
         </div>
       </div>
 
-      {/* Add Goal Form */}
+      {/* ── Add Goal Form ────────────────────────────────── */}
       {showForm && (
-        <div className="card mb-4">
-          <h2 className="font-semibold text-slate-700 mb-4">
-            新しい目標 — {year}年{month}月
-          </h2>
+        <div className="card mb-4 animate-fade-in border border-brand-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-5 rounded-full bg-brand-800" />
+              <h2 className="font-semibold text-slate-700 text-sm">
+                新しい目標 — {year}年{month}月
+              </h2>
+            </div>
+            <button
+              onClick={resetForm}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
               className="input"
@@ -208,12 +264,8 @@ export default function Goals() {
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
             />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="btn-secondary text-sm"
-              >
+            <div className="flex gap-2 justify-end pt-1">
+              <button type="button" onClick={resetForm} className="btn-secondary text-sm">
                 キャンセル
               </button>
               <button
@@ -221,23 +273,27 @@ export default function Goals() {
                 disabled={createMut.isPending || !formTitle.trim()}
                 className="btn-primary text-sm"
               >
-                {createMut.isPending ? '追加中...' : '追加'}
+                {createMut.isPending ? '追加中...' : '追加する'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Goal Cards */}
+      {/* ── Goal Cards ───────────────────────────────────── */}
       {isLoading ? (
-        <div className="card text-center text-slate-400 py-12">読み込み中...</div>
+        <div className="card flex items-center justify-center gap-3 py-14 text-slate-300">
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce [animation-delay:-0.3s]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce [animation-delay:-0.15s]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce" />
+        </div>
       ) : goals.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="flex justify-center mb-3">
-            <Target size={40} className="text-slate-200" />
+        <div className="card text-center py-16">
+          <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center mx-auto mb-4">
+            <Target size={22} className="text-stone-300" />
           </div>
-          <p className="text-slate-500 font-medium">この月の目標はまだありません</p>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-500 font-medium text-sm">この月の目標はまだありません</p>
+          <p className="text-slate-300 text-xs mt-1.5">
             「目標を追加」ボタンで最初の目標を設定しましょう
           </p>
         </div>
@@ -268,71 +324,95 @@ interface GoalCardProps {
 function GoalCard({ goal, onCycleStatus, onProgressChange, onDelete }: GoalCardProps) {
   const [localProgress, setLocalProgress] = useState(goal.progress)
 
-  // Keep local state in sync when goal data refreshes
-  const syncedProgress = localProgress !== goal.progress && localProgress === goal.progress
-    ? goal.progress
-    : localProgress
-
   return (
-    <div className="card group">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3
-            className={`font-semibold text-slate-800 leading-snug ${
-              goal.status === 'done' ? 'line-through text-slate-400' : ''
-            }`}
-          >
-            {goal.title}
-          </h3>
-          {goal.description && (
-            <p className="text-slate-500 text-sm mt-1 leading-relaxed">{goal.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={() => onCycleStatus(goal)}
-            className={`badge cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[goal.status]}`}
-            title="クリックでステータス変更"
-          >
-            {STATUS_LABEL[goal.status]}
-          </button>
-          <button
-            onClick={() => onDelete(goal.id)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-            title="削除"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      </div>
+    <div
+      className={`
+        card group hover:shadow-card-hover transition-all duration-200
+        border-l-[3px] ${STATUS_LEFT_BORDER[goal.status]}
+        p-0 overflow-hidden
+      `}
+    >
+      <div className="px-6 py-5">
 
-      {/* Progress */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>進捗</span>
-          <span className="font-semibold text-slate-700">{syncedProgress}%</span>
+        {/* ── Top row: title + controls ─────────────────── */}
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <h3
+              className={`font-semibold leading-snug transition-all ${
+                goal.status === 'done'
+                  ? 'line-through text-slate-300'
+                  : 'text-slate-800'
+              }`}
+            >
+              {goal.title}
+            </h3>
+            {goal.description && (
+              <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">
+                {goal.description}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Status badge — clickable to cycle */}
+            <button
+              onClick={() => onCycleStatus(goal)}
+              className={`badge text-[10px] cursor-pointer hover:opacity-75 transition-opacity ${STATUS_BADGE[goal.status]}`}
+              title="クリックでステータス変更"
+            >
+              {STATUS_LABEL[goal.status]}
+            </button>
+
+            {/* Delete — hover reveal */}
+            <button
+              onClick={() => onDelete(goal.id)}
+              className="p-1.5 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
+              title="削除"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
         </div>
 
-        {/* Progress bar visualization */}
-        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-150 ${STATUS_PROGRESS_BAR[goal.status]}`}
-            style={{ width: `${syncedProgress}%` }}
+        {/* ── Progress section ──────────────────────────── */}
+        <div className="space-y-3">
+
+          {/* Header: label + large percentage */}
+          <div className="flex items-end justify-between">
+            <span className="section-label">進捗</span>
+            <span
+              className={`text-3xl font-black leading-none tabular-nums transition-colors duration-200 ${STATUS_PROGRESS_NUM[goal.status]}`}
+            >
+              {localProgress}
+              <span className="text-base font-semibold ml-0.5 opacity-60">%</span>
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-150 ${STATUS_PROGRESS_BAR[goal.status]}`}
+              style={{ width: `${localProgress}%` }}
+            />
+          </div>
+
+          {/* Range slider */}
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={localProgress}
+            onChange={(e) => setLocalProgress(Number(e.target.value))}
+            onMouseUp={(e) =>
+              onProgressChange(goal, Number((e.target as HTMLInputElement).value))
+            }
+            onTouchEnd={(e) =>
+              onProgressChange(goal, Number((e.target as HTMLInputElement).value))
+            }
+            className={`w-full h-1 rounded-full appearance-none cursor-pointer bg-stone-100 ${STATUS_SLIDER_ACCENT[goal.status]}`}
           />
         </div>
-
-        {/* Slider */}
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={syncedProgress}
-          onChange={(e) => setLocalProgress(Number(e.target.value))}
-          onMouseUp={(e) => onProgressChange(goal, Number((e.target as HTMLInputElement).value))}
-          onTouchEnd={(e) => onProgressChange(goal, Number((e.target as HTMLInputElement).value))}
-          className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-slate-100 accent-blue-500"
-        />
       </div>
     </div>
   )

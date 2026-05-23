@@ -16,18 +16,18 @@ const STATUS_LABELS: Record<Essay['status'], string> = {
   final: '完成',
 }
 
-const STATUS_COLORS: Record<Essay['status'], string> = {
-  brainstorming: 'bg-purple-100 text-purple-700',
+const STATUS_BADGE: Record<Essay['status'], string> = {
+  brainstorming: 'bg-violet-100 text-violet-700',
   drafting: 'bg-blue-100 text-blue-700',
-  revising: 'bg-orange-100 text-orange-700',
-  final: 'bg-green-100 text-green-700',
+  revising: 'bg-amber-100 text-amber-700',
+  final: 'bg-emerald-100 text-emerald-700',
 }
 
-const STATUS_BAR_COLORS: Record<Essay['status'], string> = {
-  brainstorming: 'bg-purple-400',
+const STATUS_BAR: Record<Essay['status'], string> = {
+  brainstorming: 'bg-violet-400',
   drafting: 'bg-blue-400',
-  revising: 'bg-orange-400',
-  final: 'bg-green-500',
+  revising: 'bg-amber-400',
+  final: 'bg-emerald-500',
 }
 
 interface AddForm {
@@ -98,212 +98,220 @@ export default function Essays() {
       : 0
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-            <FileText size={20} className="text-indigo-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">エッセイ管理</h1>
-            <p className="text-slate-500 text-sm">ミネルバ大学出願エッセイ</p>
-          </div>
-        </div>
-        <button
-          className="btn-primary flex items-center gap-2"
-          onClick={() => setShowForm(v => !v)}
-        >
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'キャンセル' : '新規追加'}
-        </button>
-      </div>
-
-      {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="card text-center py-4">
-          <p className="text-3xl font-bold text-slate-800">{totalEssays}</p>
-          <p className="text-sm text-slate-500 mt-1">総エッセイ数</p>
-        </div>
-        <div className="card text-center py-4">
-          <p className="text-3xl font-bold text-green-600">{finalCount}</p>
-          <p className="text-sm text-slate-500 mt-1">完成済み</p>
-        </div>
-        <div className="card text-center py-4">
-          <p className="text-3xl font-bold text-blue-600">{avgProgress}%</p>
-          <p className="text-sm text-slate-500 mt-1">平均進捗</p>
-        </div>
-      </div>
-
-      {/* Add form */}
-      {showForm && (
-        <div className="card mb-6 border-2 border-blue-100">
-          <h2 className="font-semibold text-slate-700 mb-4">新しいエッセイを追加</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
-                タイトル <span className="text-red-500">*</span>
-              </label>
-              <input
-                className="input"
-                placeholder="エッセイのタイトルを入力"
-                value={form.title}
-                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                required
-              />
+    <div className="min-h-screen bg-stone-50">
+      <div className="p-8 max-w-5xl mx-auto animate-fade-in">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center shadow-sm">
+              <FileText size={22} className="text-violet-600" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
-                プロンプト（設問）
-              </label>
-              <textarea
-                className="textarea"
-                rows={3}
-                placeholder="エッセイの設問や指示を入力（任意）"
-                value={form.prompt}
-                onChange={e => setForm(f => ({ ...f, prompt: e.target.value }))}
-              />
+              <p className="section-label mb-0.5">ESSAY MANAGEMENT</p>
+              <h1 className="text-2xl font-bold text-slate-800 leading-tight">Essays</h1>
+              <p className="text-slate-400 text-sm mt-0.5">ミネルバ大学出願エッセイの管理</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+          </div>
+          <button
+            className="btn-primary flex items-center gap-2 shadow-sm"
+            onClick={() => setShowForm(v => !v)}
+          >
+            {showForm ? <X size={15} /> : <Plus size={15} />}
+            {showForm ? 'キャンセル' : '新規追加'}
+          </button>
+        </div>
+
+        {/* Summary stat cards */}
+        <div className="grid grid-cols-3 gap-4 mb-7">
+          <div className="card text-center py-5">
+            <p className="text-3xl font-bold text-slate-800 leading-none">{totalEssays}</p>
+            <p className="section-label mt-2">総エッセイ数</p>
+          </div>
+          <div className="card text-center py-5">
+            <p className="text-3xl font-bold text-emerald-600 leading-none">{finalCount}</p>
+            <p className="section-label mt-2">完成済み</p>
+          </div>
+          <div className="card text-center py-5">
+            <p className="text-3xl font-bold text-rose-800 leading-none">{avgProgress}%</p>
+            <p className="section-label mt-2">平均進捗</p>
+          </div>
+        </div>
+
+        {/* Add form — collapsible */}
+        {showForm && (
+          <div className="card mb-7 border border-violet-100 bg-white animate-fade-in">
+            <p className="section-label mb-4">新しいエッセイを追加</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1">
-                  目標語数
+                  タイトル <span className="text-rose-500">*</span>
                 </label>
                 <input
-                  type="number"
                   className="input"
-                  min={50}
-                  max={5000}
-                  value={form.target_word_count}
-                  onChange={e =>
-                    setForm(f => ({ ...f, target_word_count: Number(e.target.value) }))
-                  }
+                  placeholder="エッセイのタイトルを入力"
+                  value={form.title}
+                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1">
-                  ステータス
+                  プロンプト（設問）
                 </label>
-                <select
-                  className="select"
-                  value={form.status}
-                  onChange={e =>
-                    setForm(f => ({ ...f, status: e.target.value as Essay['status'] }))
-                  }
-                >
-                  {(Object.keys(STATUS_LABELS) as Essay['status'][]).map(s => (
-                    <option key={s} value={s}>
-                      {STATUS_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
+                <textarea
+                  className="textarea"
+                  rows={3}
+                  placeholder="エッセイの設問や指示を入力（任意）"
+                  value={form.prompt}
+                  onChange={e => setForm(f => ({ ...f, prompt: e.target.value }))}
+                />
               </div>
-            </div>
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={createMutation.isPending}
-              >
-                {createMutation.isPending ? '追加中...' : '追加する'}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  setShowForm(false)
-                  setForm(DEFAULT_FORM)
-                }}
-              >
-                キャンセル
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Essay cards grid */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
-          読み込み中...
-        </div>
-      ) : essays.length === 0 ? (
-        <div className="card text-center py-16">
-          <FileText size={40} className="mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500 font-medium">エッセイがまだありません</p>
-          <p className="text-slate-400 text-sm mt-1">
-            「新規追加」ボタンから最初のエッセイを作成しましょう
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-5">
-          {essays.map(essay => {
-            const progress = Math.min(
-              100,
-              Math.round((essay.word_count / essay.target_word_count) * 100),
-            )
-            return (
-              <div key={essay.id} className="card flex flex-col gap-3 hover:shadow-md transition-shadow">
-                {/* Title row */}
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-slate-800 leading-snug">{essay.title}</h3>
-                  <span className={`badge whitespace-nowrap ${STATUS_COLORS[essay.status]}`}>
-                    {STATUS_LABELS[essay.status]}
-                  </span>
-                </div>
-
-                {/* Prompt excerpt */}
-                {essay.prompt && (
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                    {essay.prompt.slice(0, 80)}
-                    {essay.prompt.length > 80 ? '...' : ''}
-                  </p>
-                )}
-
-                {/* Progress bar */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-slate-500">進捗</span>
-                    <span className="text-xs font-medium text-slate-600">
-                      {essay.word_count} / {essay.target_word_count}語
+                  <label className="block text-sm font-medium text-slate-600 mb-1">
+                    目標語数
+                  </label>
+                  <input
+                    type="number"
+                    className="input"
+                    min={50}
+                    max={5000}
+                    value={form.target_word_count}
+                    onChange={e =>
+                      setForm(f => ({ ...f, target_word_count: Number(e.target.value) }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">
+                    ステータス
+                  </label>
+                  <select
+                    className="select"
+                    value={form.status}
+                    onChange={e =>
+                      setForm(f => ({ ...f, status: e.target.value as Essay['status'] }))
+                    }
+                  >
+                    {(Object.keys(STATUS_LABELS) as Essay['status'][]).map(s => (
+                      <option key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={createMutation.isPending}
+                >
+                  {createMutation.isPending ? '追加中...' : '追加する'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setShowForm(false)
+                    setForm(DEFAULT_FORM)
+                  }}
+                >
+                  キャンセル
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Essay cards grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-24 text-slate-400 text-sm">
+            読み込み中...
+          </div>
+        ) : essays.length === 0 ? (
+          <div className="card text-center py-20">
+            <div className="w-14 h-14 bg-stone-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FileText size={24} className="text-stone-300" />
+            </div>
+            <p className="text-slate-500 font-medium">エッセイがまだありません</p>
+            <p className="text-slate-400 text-sm mt-1">
+              「新規追加」ボタンから最初のエッセイを作成しましょう
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-5">
+            {essays.map(essay => {
+              const progress = Math.min(
+                100,
+                Math.round((essay.word_count / essay.target_word_count) * 100),
+              )
+              return (
+                <div
+                  key={essay.id}
+                  className="card flex flex-col gap-3 hover:shadow-md transition-shadow duration-200"
+                >
+                  {/* Title row with status badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold text-slate-800 leading-snug text-base flex-1 min-w-0">
+                      {essay.title}
+                    </h3>
+                    <span className={`badge whitespace-nowrap flex-shrink-0 ${STATUS_BADGE[essay.status]}`}>
+                      {STATUS_LABELS[essay.status]}
                     </span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${STATUS_BAR_COLORS[essay.status]}`}
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <p className="text-right text-xs text-slate-400 mt-0.5">{progress}%</p>
-                </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-1 border-t border-slate-50">
-                  <button
-                    className="btn-primary flex items-center gap-1.5 text-sm flex-1 justify-center"
-                    onClick={() => navigate(`/essays/${essay.id}`)}
-                  >
-                    <Edit2 size={14} />
-                    編集
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    className="btn-secondary flex items-center gap-1 text-sm px-3 text-red-500 hover:bg-red-50"
-                    onClick={() => {
-                      if (confirm(`「${essay.title}」を削除しますか？`)) {
-                        deleteMutation.mutate(essay.id)
-                      }
-                    }}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {/* Prompt excerpt */}
+                  {essay.prompt ? (
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      {essay.prompt}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-300 italic">設問なし</p>
+                  )}
+
+                  {/* Word count progress */}
+                  <div className="space-y-1.5">
+                    <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${STATUS_BAR[essay.status]}`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      {essay.word_count} / {essay.target_word_count}語&ensp;
+                      <span className="text-slate-300">({progress}%)</span>
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2 border-t border-stone-50 mt-auto">
+                    <button
+                      className="btn-primary flex items-center gap-1.5 text-sm flex-1 justify-center"
+                      onClick={() => navigate(`/essays/${essay.id}`)}
+                    >
+                      <Edit2 size={13} />
+                      編集
+                      <ChevronRight size={13} />
+                    </button>
+                    <button
+                      className="btn-secondary flex items-center gap-1 text-sm px-3 text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      onClick={() => {
+                        if (confirm(`「${essay.title}」を削除しますか？`)) {
+                          deleteMutation.mutate(essay.id)
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
