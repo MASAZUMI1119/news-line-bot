@@ -6,6 +6,10 @@ import {
   Plus,
   Trash2,
   Sparkles,
+  CheckCircle2,
+  Circle,
+  CalendarDays,
+  X,
 } from 'lucide-react'
 import {
   getTasks,
@@ -20,16 +24,22 @@ type FilterTab = 'all' | 'pending' | 'done'
 
 const PRIORITY_ORDER: Record<Task['priority'], number> = { high: 0, medium: 1, low: 2 }
 
-const PRIORITY_BADGE: Record<Task['priority'], string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-green-100 text-green-700',
+const PRIORITY_BORDER: Record<Task['priority'], string> = {
+  high: 'border-l-rose-500',
+  medium: 'border-l-amber-400',
+  low: 'border-l-emerald-400',
 }
 
-const PRIORITY_CHECKBOX: Record<Task['priority'], string> = {
-  high: 'accent-red-500',
-  medium: 'accent-yellow-500',
-  low: 'accent-green-500',
+const PRIORITY_DOT: Record<Task['priority'], string> = {
+  high: 'bg-rose-500',
+  medium: 'bg-amber-400',
+  low: 'bg-emerald-400',
+}
+
+const PRIORITY_BADGE: Record<Task['priority'], string> = {
+  high: 'bg-rose-50 text-rose-600',
+  medium: 'bg-amber-50 text-amber-600',
+  low: 'bg-emerald-50 text-emerald-600',
 }
 
 const PRIORITY_LABEL: Record<Task['priority'], string> = {
@@ -51,9 +61,9 @@ const STATUS_LABEL: Record<Task['status'], string> = {
 }
 
 const STATUS_BADGE: Record<Task['status'], string> = {
-  pending: 'bg-slate-100 text-slate-600',
-  in_progress: 'bg-blue-100 text-blue-700',
-  done: 'bg-green-100 text-green-700',
+  pending: 'bg-stone-100 text-slate-500',
+  in_progress: 'bg-brand-50 text-brand-700',
+  done: 'bg-emerald-50 text-emerald-600',
 }
 
 function toDateString(d: Date): string {
@@ -75,6 +85,12 @@ function addDays(dateStr: string, n: number): string {
 }
 
 const today = toDateString(new Date())
+
+const FILTER_LABELS: Record<FilterTab, string> = {
+  all: 'ALL',
+  pending: 'PENDING',
+  done: 'DONE',
+}
 
 export default function Tasks() {
   const qc = useQueryClient()
@@ -173,75 +189,109 @@ export default function Tasks() {
   const isToday = date === today
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 md:p-8 max-w-3xl mx-auto animate-fade-in">
+
+      {/* ── Page Header ─────────────────────────────────── */}
+      <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">デイリータスク</h1>
-          <p className="text-slate-500 text-sm mt-0.5">今日のタスクを管理しましょう</p>
+          <p className="section-label mb-1.5">DAILY TASKS</p>
+          <h1 className="text-2xl font-bold text-slate-800 leading-tight tracking-tight">
+            デイリータスク
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           {isToday && (
             <button
               onClick={() => generateMut.mutate()}
               disabled={generateMut.isPending}
-              className="btn-primary flex items-center gap-1.5 text-sm"
+              className="btn-primary text-sm"
             >
-              <Sparkles size={15} />
-              {generateMut.isPending ? '生成中...' : 'AIでタスク生成'}
+              <Sparkles size={14} />
+              {generateMut.isPending ? '生成中...' : 'AI生成'}
             </button>
           )}
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="btn-secondary flex items-center gap-1.5 text-sm"
+            className="btn-secondary text-sm"
           >
-            <Plus size={15} />
+            <Plus size={14} />
             タスク追加
           </button>
         </div>
       </div>
 
-      {/* Date Navigation */}
+      {/* ── Date Navigation ─────────────────────────────── */}
       <div className="card mb-4">
+        {/* Pill navigation row */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => setDate((d) => addDays(d, -1))}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-700 transition-colors"
+            aria-label="前の日"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={17} />
           </button>
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-semibold text-slate-800">{toJapanese(date)}</span>
+
+          <div className="flex items-center gap-2.5">
+            {/* Date display pill */}
+            <div className="flex items-center gap-2 bg-stone-50 border border-stone-100 rounded-full px-4 py-2">
+              <CalendarDays size={13} className="text-slate-400 flex-shrink-0" />
+              <span className="text-sm font-semibold text-slate-700 tracking-tight whitespace-nowrap">
+                {toJapanese(date)}
+              </span>
+            </div>
+
+            {/* "今日" badge */}
             {isToday && (
-              <span className="badge bg-blue-100 text-blue-700">今日</span>
+              <span className="badge bg-brand-800 text-white text-[10px] tracking-wider px-3 py-1">
+                今日
+              </span>
             )}
+
+            {/* Date picker (icon-style) */}
             <input
               type="date"
               value={date}
               onChange={(e) => e.target.value && setDate(e.target.value)}
-              className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-7 h-7 opacity-0 absolute cursor-pointer"
+              style={{ position: 'absolute' }}
+              aria-label="日付選択"
             />
+            <label className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer relative">
+              <CalendarDays size={14} />
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => e.target.value && setDate(e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                aria-label="日付選択"
+              />
+            </label>
           </div>
+
           <button
             onClick={() => setDate((d) => addDays(d, 1))}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-700 transition-colors"
+            aria-label="次の日"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={17} />
           </button>
         </div>
 
         {/* Progress Bar */}
         {totalCount > 0 && (
-          <div className="mt-4">
-            <div className="flex justify-between text-sm text-slate-600 mb-1.5">
-              <span>
-                {doneCount} / {totalCount} 完了
+          <div className="mt-5 pt-5 border-t border-stone-100">
+            <div className="flex justify-between items-center mb-2.5">
+              <span className="text-xs text-slate-400">
+                <span className="text-slate-700 font-bold tabular-nums">{doneCount}</span>
+                <span className="text-slate-400"> / {totalCount} 完了</span>
               </span>
-              <span className="font-medium">{progress}%</span>
+              <span className="text-xs font-bold text-brand-800 tabular-nums">{progress}%</span>
             </div>
-            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            {/* Slim progress bar */}
+            <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                className="h-full bg-brand-800 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -249,10 +299,22 @@ export default function Tasks() {
         )}
       </div>
 
-      {/* Add Task Form */}
+      {/* ── Add Task Form ────────────────────────────────── */}
       {showForm && (
-        <div className="card mb-4">
-          <h2 className="font-semibold text-slate-700 mb-4">新しいタスク</h2>
+        <div className="card mb-4 animate-fade-in border border-brand-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-5 rounded-full bg-brand-800" />
+              <h2 className="font-semibold text-slate-700 text-sm">新しいタスクを追加</h2>
+            </div>
+            <button
+              onClick={resetForm}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
               className="input"
@@ -264,7 +326,7 @@ export default function Tasks() {
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">優先度</label>
+                <label className="block section-label mb-1.5">優先度</label>
                 <select
                   className="select"
                   value={formPriority}
@@ -276,10 +338,10 @@ export default function Tasks() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">カテゴリ</label>
+                <label className="block section-label mb-1.5">カテゴリ</label>
                 <input
                   className="input"
-                  placeholder="study / essay / document"
+                  placeholder="study / essay..."
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
                 />
@@ -292,12 +354,8 @@ export default function Tasks() {
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
             />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="btn-secondary text-sm"
-              >
+            <div className="flex gap-2 justify-end pt-1">
+              <button type="button" onClick={resetForm} className="btn-secondary text-sm">
                 キャンセル
               </button>
               <button
@@ -305,37 +363,43 @@ export default function Tasks() {
                 disabled={createMut.isPending || !formTitle.trim()}
                 className="btn-primary text-sm"
               >
-                {createMut.isPending ? '追加中...' : '追加'}
+                {createMut.isPending ? '追加中...' : '追加する'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex gap-1 mb-4 bg-slate-100 rounded-xl p-1 w-fit">
+      {/* ── Filter Tabs ──────────────────────────────────── */}
+      <div className="flex gap-1 mb-4 bg-stone-100 rounded-2xl p-1 w-fit">
         {(['all', 'pending', 'done'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all duration-150 ${
               filter === tab
-                ? 'bg-white text-slate-800 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-brand-800 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            {tab === 'all' ? 'すべて' : tab === 'pending' ? '未完了' : '完了'}
+            {FILTER_LABELS[tab]}
           </button>
         ))}
       </div>
 
-      {/* Task List */}
+      {/* ── Task List ────────────────────────────────────── */}
       {isLoading ? (
-        <div className="card text-center text-slate-400 py-12">読み込み中...</div>
+        <div className="card flex items-center justify-center gap-3 py-14 text-slate-300">
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce [animation-delay:-0.3s]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce [animation-delay:-0.15s]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-stone-300 animate-bounce" />
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="text-slate-300 text-5xl mb-3">✓</div>
-          <p className="text-slate-500 font-medium">
+        <div className="card text-center py-16">
+          <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 size={22} className="text-stone-300" />
+          </div>
+          <p className="text-slate-500 font-medium text-sm">
             {filter === 'done'
               ? '完了したタスクはありません'
               : filter === 'pending'
@@ -343,7 +407,7 @@ export default function Tasks() {
               : 'この日のタスクはありません'}
           </p>
           {filter === 'all' && (
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-slate-300 text-xs mt-1.5">
               「タスク追加」またはAI生成で始めましょう
             </p>
           )}
@@ -353,49 +417,59 @@ export default function Tasks() {
           {filtered.map((task) => (
             <li
               key={task.id}
-              className="card py-4 group relative"
               onMouseEnter={() => setHoveredId(task.id)}
               onMouseLeave={() => setHoveredId(null)}
+              className={`
+                card p-0 overflow-hidden group
+                border-l-[3px] ${PRIORITY_BORDER[task.priority]}
+                hover:shadow-card-hover transition-all duration-200
+              `}
             >
-              <div className="flex items-start gap-3">
-                {/* Checkbox */}
-                <input
-                  type="checkbox"
-                  checked={task.status === 'done'}
-                  onChange={() => toggleDone(task)}
-                  className={`mt-0.5 w-5 h-5 rounded cursor-pointer flex-shrink-0 ${PRIORITY_CHECKBOX[task.priority]}`}
-                />
+              <div className="px-5 py-4 flex items-start gap-3.5">
+
+                {/* Custom Checkbox */}
+                <button
+                  onClick={() => toggleDone(task)}
+                  className="mt-0.5 flex-shrink-0 transition-colors"
+                  aria-label="完了トグル"
+                >
+                  {task.status === 'done' ? (
+                    <CheckCircle2 size={19} className="text-brand-800" />
+                  ) : (
+                    <Circle size={19} className="text-slate-300 hover:text-brand-800 transition-colors" />
+                  )}
+                </button>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center flex-wrap gap-1.5 mb-0.5">
+                  {/* Title row */}
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`font-medium text-sm leading-snug ${
+                      className={`font-medium text-sm leading-snug transition-all ${
                         task.status === 'done'
-                          ? 'line-through text-slate-400'
+                          ? 'line-through text-slate-300'
                           : 'text-slate-800'
                       }`}
                     >
                       {task.title}
                     </span>
                     {task.ai_generated && (
-                      <Sparkles
-                        size={13}
-                        className="text-purple-400 flex-shrink-0"
-                      />
+                      <Sparkles size={12} className="text-amber-400 flex-shrink-0" />
                     )}
                   </div>
 
-                  <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                    {/* Priority badge */}
-                    <span className={`badge ${PRIORITY_BADGE[task.priority]}`}>
+                  {/* Badge row */}
+                  <div className="flex items-center flex-wrap gap-1.5 mt-2">
+                    {/* Priority dot + badge */}
+                    <span className={`badge text-[10px] tracking-wide ${PRIORITY_BADGE[task.priority]}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[task.priority]} inline-block`} />
                       {PRIORITY_LABEL[task.priority]}
                     </span>
 
-                    {/* Status badge - clickable */}
+                    {/* Status badge - clickable to cycle */}
                     <button
                       onClick={() => cycleStatus(task)}
-                      className={`badge cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[task.status]}`}
+                      className={`badge text-[10px] cursor-pointer hover:opacity-75 transition-opacity ${STATUS_BADGE[task.status]}`}
                       title="クリックでステータス変更"
                     >
                       {STATUS_LABEL[task.status]}
@@ -403,28 +477,31 @@ export default function Tasks() {
 
                     {/* Category tag */}
                     {task.category && (
-                      <span className="badge bg-slate-100 text-slate-600">
-                        {task.category}
+                      <span className="badge bg-stone-100 text-slate-400 text-[10px]">
+                        # {task.category}
                       </span>
                     )}
                   </div>
 
+                  {/* Description */}
                   {task.description && (
-                    <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
+                    <p className="text-slate-400 text-xs mt-2 leading-relaxed">
                       {task.description}
                     </p>
                   )}
                 </div>
 
-                {/* Delete button */}
+                {/* Delete button — hover reveal */}
                 <button
                   onClick={() => deleteMut.mutate(task.id)}
-                  className={`p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0 ${
-                    hoveredId === task.id ? 'opacity-100' : 'opacity-0'
-                  }`}
+                  className={`
+                    p-1.5 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50
+                    transition-all flex-shrink-0 mt-0.5 duration-150
+                    ${hoveredId === task.id ? 'opacity-100' : 'opacity-0'}
+                  `}
                   title="削除"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </div>
             </li>

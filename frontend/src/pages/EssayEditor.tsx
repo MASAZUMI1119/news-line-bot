@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, FileText } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Pencil } from 'lucide-react'
 import { getEssay, updateEssay, type Essay } from '../api/client'
 
 const STATUS_LABELS: Record<Essay['status'], string> = {
@@ -11,11 +11,11 @@ const STATUS_LABELS: Record<Essay['status'], string> = {
   final: '完成',
 }
 
-const STATUS_COLORS: Record<Essay['status'], string> = {
-  brainstorming: 'bg-purple-100 text-purple-700',
-  drafting: 'bg-blue-100 text-blue-700',
-  revising: 'bg-orange-100 text-orange-700',
-  final: 'bg-green-100 text-green-700',
+const STATUS_SELECT_COLORS: Record<Essay['status'], string> = {
+  brainstorming: 'bg-violet-100 text-violet-700 border-violet-200',
+  drafting: 'bg-blue-100 text-blue-700 border-blue-200',
+  revising: 'bg-amber-100 text-amber-700 border-amber-200',
+  final: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 }
 
 function countWords(text: string): number {
@@ -125,7 +125,7 @@ export default function EssayEditor() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-slate-400">
+      <div className="flex items-center justify-center min-h-screen bg-stone-50 text-slate-400 text-sm">
         読み込み中...
       </div>
     )
@@ -133,9 +133,11 @@ export default function EssayEditor() {
 
   if (!essay) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <FileText size={40} className="text-slate-300" />
-        <p className="text-slate-500">エッセイが見つかりません</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-stone-50 gap-4">
+        <div className="w-14 h-14 bg-stone-100 rounded-2xl flex items-center justify-center">
+          <FileText size={24} className="text-stone-300" />
+        </div>
+        <p className="text-slate-500 font-medium">エッセイが見つかりません</p>
         <button className="btn-secondary" onClick={() => navigate('/essays')}>
           一覧へ戻る
         </button>
@@ -145,27 +147,39 @@ export default function EssayEditor() {
 
   const target = essay.target_word_count
   const progressPct = Math.min(100, Math.round((wordCount / target) * 100))
-  const wordCountColor =
-    wordCount > target ? 'text-red-600 font-semibold' : wordCount >= target * 0.9 ? 'text-green-600 font-semibold' : 'text-slate-600'
+  const isOver = wordCount > target
+  const isNearDone = !isOver && wordCount >= target * 0.9
+
+  const progressBarColor = isOver
+    ? 'bg-red-400'
+    : isNearDone
+      ? 'bg-emerald-500'
+      : 'bg-blue-400'
+
+  const wordCountColor = isOver
+    ? 'text-red-600 font-semibold'
+    : isNearDone
+      ? 'text-emerald-600 font-semibold'
+      : 'text-slate-600'
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-stone-50">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100 flex-shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-stone-100 flex-shrink-0">
+        {/* Left: back + title */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
-            className="btn-secondary flex items-center gap-2 text-sm"
+            className="btn-secondary flex items-center gap-1.5 text-sm flex-shrink-0"
             onClick={() => navigate(-1)}
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
             戻る
           </button>
 
-          {/* Inline title editor */}
           {editingTitle ? (
             <input
               ref={titleInputRef}
-              className="input w-72 font-semibold text-slate-800"
+              className="input w-72 font-semibold text-slate-800 text-base"
               value={title}
               onChange={e => setTitle(e.target.value)}
               onBlur={() => {
@@ -181,19 +195,23 @@ export default function EssayEditor() {
             />
           ) : (
             <button
-              className="text-lg font-semibold text-slate-800 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1.5 group text-base font-semibold text-slate-800 hover:text-rose-800 transition-colors min-w-0"
               onClick={() => setEditingTitle(true)}
               title="クリックしてタイトルを編集"
             >
-              {title}
+              <span className="truncate">{title}</span>
+              <Pencil
+                size={13}
+                className="text-slate-300 group-hover:text-rose-400 flex-shrink-0 transition-colors"
+              />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Status selector */}
+        {/* Right: status + word count + save */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           <select
-            className={`select w-auto text-sm px-3 py-1.5 border rounded-lg ${STATUS_COLORS[status]}`}
+            className={`text-xs font-medium px-3 py-1.5 rounded-lg border cursor-pointer focus:outline-none transition-colors ${STATUS_SELECT_COLORS[status]}`}
             value={status}
             onChange={e => {
               const v = e.target.value as Essay['status']
@@ -208,42 +226,47 @@ export default function EssayEditor() {
             ))}
           </select>
 
-          {/* Word count */}
-          <span className={`text-sm ${wordCountColor}`}>
+          <span className={`text-sm tabular-nums ${wordCountColor}`}>
             {wordCount} / {target}語
           </span>
 
-          {/* Save button */}
           <button
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-1.5 text-sm"
             onClick={handleSaveNow}
             disabled={saveMutation.isPending || isSaving}
           >
-            <Save size={16} />
+            <Save size={14} />
             {isSaving || saveMutation.isPending ? '保存中...' : '保存'}
           </button>
         </div>
       </div>
 
-      {/* Last saved */}
-      {lastSaved && (
-        <div className="px-6 py-1.5 bg-slate-50 border-b border-slate-100 text-xs text-slate-400 flex-shrink-0">
-          最終更新: {formatJapaneseDate(lastSaved)}
+      {/* Second bar: last saved + full-width progress bar */}
+      <div className="flex-shrink-0 bg-white border-b border-stone-100">
+        {lastSaved && (
+          <div className="px-6 py-1 text-xs text-slate-400">
+            最終更新: {formatJapaneseDate(lastSaved)}
+          </div>
+        )}
+        {/* Full-width 2px progress bar */}
+        <div className="w-full bg-stone-100 h-0.5">
+          <div
+            className={`h-0.5 transition-all duration-300 ${progressBarColor}`}
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Main content */}
+      {/* Main area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: main editor */}
+        {/* Left: prompt + essay editor */}
         <div className="flex-1 flex flex-col overflow-hidden p-6 gap-4">
-          {/* Prompt display */}
+          {/* Prompt section */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                プロンプト（設問）
-              </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="section-label">プロンプト / 設問</span>
               <button
-                className="text-xs text-blue-500 hover:underline"
+                className="text-xs text-rose-800 hover:text-rose-900 font-medium transition-colors"
                 onClick={() => setEditingPrompt(v => !v)}
               >
                 {editingPrompt ? '完了' : '編集'}
@@ -260,58 +283,55 @@ export default function EssayEditor() {
                   handleBlurField()
                 }}
                 placeholder="設問を入力..."
+                autoFocus
               />
             ) : (
               <div
-                className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-sm text-slate-600 min-h-[56px] cursor-pointer hover:bg-slate-100 transition-colors"
+                className="rounded-xl bg-stone-50 border border-stone-100 px-4 py-3 text-sm text-slate-600 min-h-[52px] cursor-pointer hover:bg-stone-100 transition-colors"
                 onClick={() => setEditingPrompt(true)}
               >
-                {prompt || (
-                  <span className="text-slate-400 italic">設問をクリックして入力...</span>
+                {prompt ? (
+                  prompt
+                ) : (
+                  <span className="text-slate-300 italic">設問をクリックして入力...</span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Draft textarea */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                エッセイ本文
-              </label>
-              {/* Progress bar inline */}
-              <div className="flex items-center gap-2">
-                <div className="w-32 bg-slate-100 rounded-full h-1.5">
-                  <div
-                    className={`h-1.5 rounded-full transition-all ${
-                      wordCount > target ? 'bg-red-400' : wordCount >= target * 0.9 ? 'bg-green-500' : 'bg-blue-400'
-                    }`}
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-                <span className="text-xs text-slate-400">{progressPct}%</span>
+          {/* Essay label + inline progress */}
+          <div className="flex items-center justify-between">
+            <span className="section-label">ESSAY</span>
+            <div className="flex items-center gap-2">
+              <div className="w-28 bg-stone-200 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-300 ${progressBarColor}`}
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
+              <span className="text-xs text-slate-400 tabular-nums w-8 text-right">{progressPct}%</span>
             </div>
-            <textarea
-              className="textarea flex-1 leading-relaxed text-sm"
-              style={{ minHeight: '400px', resize: 'vertical' }}
-              value={draft}
-              onChange={e => handleDraftChange(e.target.value)}
-              onBlur={handleBlurField}
-              placeholder="エッセイを書き始めましょう..."
-            />
           </div>
+
+          {/* Large draft textarea */}
+          <textarea
+            className="flex-1 w-full rounded-xl border border-stone-200 px-5 py-4 text-base leading-relaxed text-slate-800 placeholder-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow bg-white"
+            style={{ minHeight: '0' }}
+            value={draft}
+            onChange={e => handleDraftChange(e.target.value)}
+            onBlur={handleBlurField}
+            placeholder="エッセイを書き始めましょう..."
+          />
         </div>
 
-        {/* Right sidebar: notes */}
-        <div className="w-72 border-l border-slate-100 p-5 flex flex-col gap-4 overflow-y-auto bg-slate-50/50">
-          <div>
-            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
-              メモ・ノート
-            </label>
+        {/* Right sidebar */}
+        <div className="w-64 border-l border-stone-100 bg-stone-50 flex flex-col overflow-y-auto">
+          {/* Notes section */}
+          <div className="p-5 flex flex-col gap-2 flex-shrink-0">
+            <span className="section-label">NOTES</span>
             <textarea
-              className="textarea bg-white"
-              rows={12}
+              className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow leading-relaxed"
+              rows={10}
               value={notes}
               onChange={e => setNotes(e.target.value)}
               onBlur={handleBlurField}
@@ -320,26 +340,30 @@ export default function EssayEditor() {
           </div>
 
           {/* Stats card */}
-          <div className="card p-4">
-            <p className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">統計</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">語数</span>
-                <span className={wordCountColor}>{wordCount}語</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">目標</span>
-                <span className="text-slate-700">{target}語</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">残り</span>
-                <span className={wordCount >= target ? 'text-green-600' : 'text-slate-700'}>
-                  {wordCount >= target ? '達成！' : `${target - wordCount}語`}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">進捗</span>
-                <span className="text-slate-700">{progressPct}%</span>
+          <div className="px-5 pb-5">
+            <div className="bg-white rounded-2xl border border-stone-100 p-4">
+              <span className="section-label block mb-3">STATS</span>
+              <div className="space-y-2.5 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">語数</span>
+                  <span className={`tabular-nums ${wordCountColor}`}>{wordCount}語</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">目標</span>
+                  <span className="text-slate-600 tabular-nums">{target}語</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">残り</span>
+                  <span
+                    className={`tabular-nums ${wordCount >= target ? 'text-emerald-600 font-semibold' : 'text-slate-600'}`}
+                  >
+                    {wordCount >= target ? '達成！' : `${target - wordCount}語`}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">進捗</span>
+                  <span className="text-slate-600 tabular-nums">{progressPct}%</span>
+                </div>
               </div>
             </div>
           </div>
