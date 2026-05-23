@@ -61,6 +61,8 @@ class Achievement(Base):
     category = Column(String(30), default="other")
     date = Column(String(10))
     impact = Column(Text)
+    evidence_url = Column(Text)
+    validation_contact = Column(String(300))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

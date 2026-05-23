@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Edit2, Star, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Star, X, Link, UserCheck, AlertCircle } from 'lucide-react'
 import {
   getAchievements,
   createAchievement,
@@ -41,6 +41,8 @@ interface AchievementFormData {
   date: string
   description: string
   impact: string
+  evidence_url: string
+  validation_contact: string
 }
 
 const DEFAULT_FORM: AchievementFormData = {
@@ -49,6 +51,8 @@ const DEFAULT_FORM: AchievementFormData = {
   date: '',
   description: '',
   impact: '',
+  evidence_url: '',
+  validation_contact: '',
 }
 
 // ── sub-components ─────────────────────────────────────────────────────────
@@ -126,15 +130,41 @@ function AchievementForm({
 
       <div>
         <label className="block text-sm font-medium text-slate-600 mb-1">
-          アピールポイント
+          アピールポイント（数値化）
         </label>
-        <p className="text-xs text-slate-400 mb-1">ミネルバの審査員へのアピールポイント</p>
+        <p className="text-xs text-slate-400 mb-1">例：「参加者150名・満足度95%」「資金調達318万円・目標比112%」</p>
         <textarea
           className="textarea"
           rows={3}
-          placeholder="この実績がミネルバ大学の選考でどう活きるかを記述"
+          placeholder="この実績の定量的インパクトをミネルバ審査員に伝える"
           value={form.impact}
           onChange={e => setForm(f => ({ ...f, impact: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-600 mb-1 flex items-center gap-1">
+          <Link size={13} className="text-blue-500" /> 証跡URL（Evidence）
+        </label>
+        <p className="text-xs text-slate-400 mb-1">修了証書PDF・稼働中ウェブサイト・新聞記事URL等。スナップ写真は不可。</p>
+        <input
+          className="input"
+          placeholder="https://... または証跡ファイルへのリンク"
+          value={form.evidence_url}
+          onChange={e => setForm(f => ({ ...f, evidence_url: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-600 mb-1 flex items-center gap-1">
+          <UserCheck size={13} className="text-green-500" /> 検証用連絡先（Validation Contact）
+        </label>
+        <p className="text-xs text-slate-400 mb-1">この実績を証明できる第三者（担当教員・外部メンター等）。家族・友人は不可。</p>
+        <input
+          className="input"
+          placeholder="例：山田先生 / yamada@school.jp"
+          value={form.validation_contact}
+          onChange={e => setForm(f => ({ ...f, validation_contact: e.target.value }))}
         />
       </div>
 
@@ -183,6 +213,8 @@ function AchievementCard({
       date: data.date || undefined,
       description: data.description.trim() || undefined,
       impact: data.impact.trim() || undefined,
+      evidence_url: data.evidence_url.trim() || undefined,
+      validation_contact: data.validation_contact.trim() || undefined,
     })
   }
 
@@ -192,6 +224,8 @@ function AchievementCard({
     date: achievement.date ?? '',
     description: achievement.description ?? '',
     impact: achievement.impact ?? '',
+    evidence_url: achievement.evidence_url ?? '',
+    validation_contact: achievement.validation_contact ?? '',
   }
 
   const formatDate = (d: string) => {
@@ -268,6 +302,33 @@ function AchievementCard({
           <p className="text-sm text-yellow-800 leading-relaxed">{achievement.impact}</p>
         </div>
       )}
+
+      {/* Evidence & Validation */}
+      <div className="flex flex-col gap-1.5 mt-1">
+        {achievement.evidence_url ? (
+          <div className="flex items-center gap-2 text-xs">
+            <Link size={12} className="text-blue-500 flex-shrink-0" />
+            <a href={achievement.evidence_url} target="_blank" rel="noopener noreferrer"
+               className="text-blue-600 hover:underline truncate">{achievement.evidence_url}</a>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-2 py-1">
+            <AlertCircle size={12} className="flex-shrink-0" />
+            <span>証跡URLが未設定です（出願に必須）</span>
+          </div>
+        )}
+        {achievement.validation_contact ? (
+          <div className="flex items-center gap-2 text-xs">
+            <UserCheck size={12} className="text-green-500 flex-shrink-0" />
+            <span className="text-slate-600">{achievement.validation_contact}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-2 py-1">
+            <AlertCircle size={12} className="flex-shrink-0" />
+            <span>検証用連絡先が未設定です（出願に必須）</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -301,6 +362,8 @@ export default function Achievements() {
       date: data.date || undefined,
       description: data.description.trim() || undefined,
       impact: data.impact.trim() || undefined,
+      evidence_url: data.evidence_url.trim() || undefined,
+      validation_contact: data.validation_contact.trim() || undefined,
     })
   }
 
@@ -335,18 +398,31 @@ export default function Achievements() {
             <Star size={20} className="text-yellow-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">実績・活動</h1>
-            <p className="text-slate-500 text-sm">ミネルバ大学出願のための実績管理</p>
+            <h1 className="text-2xl font-bold text-slate-800">実績・活動（Accomplishments）</h1>
+            <p className="text-slate-500 text-sm">最大6項目（推奨3〜4項目）・証跡URL・検証用連絡先が必須</p>
           </div>
         </div>
-        <button
-          className="btn-primary flex items-center gap-2"
-          onClick={() => setShowForm(v => !v)}
-        >
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'キャンセル' : '追加'}
-        </button>
+        <div className="flex items-center gap-3">
+          <div className={`text-sm font-semibold px-3 py-1.5 rounded-xl ${achievements.length >= 6 ? 'bg-red-100 text-red-700' : achievements.length >= 4 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+            {achievements.length} / 6 件
+          </div>
+          <button
+            className="btn-primary flex items-center gap-2"
+            onClick={() => setShowForm(v => !v)}
+            disabled={achievements.length >= 6}
+          >
+            {showForm ? <X size={16} /> : <Plus size={16} />}
+            {showForm ? 'キャンセル' : '追加'}
+          </button>
+        </div>
       </div>
+
+      {achievements.length >= 6 && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-sm text-red-700">
+          <AlertCircle size={16} className="flex-shrink-0" />
+          最大6件に達しました。出願には最も重要な実績を厳選することが推奨されています。
+        </div>
+      )}
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">

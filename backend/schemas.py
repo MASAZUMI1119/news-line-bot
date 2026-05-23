@@ -134,6 +134,8 @@ class AchievementBase(BaseModel):
     category: str = "other"
     date: Optional[str] = None
     impact: Optional[str] = None
+    evidence_url: Optional[str] = None
+    validation_contact: Optional[str] = None
 
 
 class AchievementCreate(AchievementBase):
@@ -146,6 +148,8 @@ class AchievementUpdate(BaseModel):
     category: Optional[str] = None
     date: Optional[str] = None
     impact: Optional[str] = None
+    evidence_url: Optional[str] = None
+    validation_contact: Optional[str] = None
 
 
 class AchievementOut(AchievementBase):

@@ -124,6 +124,8 @@ export interface Achievement {
   category: 'academic' | 'extracurricular' | 'leadership' | 'community' | 'work' | 'other'
   date?: string
   impact?: string
+  evidence_url?: string
+  validation_contact?: string
   created_at: string
 }
 
