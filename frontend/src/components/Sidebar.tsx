@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarDays, CheckSquare, Target,
-  FileText, Trophy, Bot,
+  FileText, Trophy, Bot, ListTodo, Brain,
 } from 'lucide-react'
 
 const nav = [
@@ -12,6 +12,8 @@ const nav = [
   { to: '/essays',       label: 'ESSAYS',        sub: 'エッセイ管理',     icon: FileText },
   { to: '/achievements', label: 'ACHIEVEMENTS',  sub: '実績・活動',       icon: Trophy },
   { to: '/tutor',        label: 'AI TUTOR',      sub: 'AIチューター',     icon: Bot },
+  { to: '/notion-tasks', label: 'NOTION TASKS',  sub: 'Notionタスク',     icon: ListTodo },
+  { to: '/ai-coach',     label: 'AI COACH',      sub: 'AI分析・最適化',   icon: Brain },
 ]
 
 export default function Sidebar() {

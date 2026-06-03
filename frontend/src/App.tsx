@@ -8,6 +8,8 @@ import Essays from './pages/Essays'
 import EssayEditor from './pages/EssayEditor'
 import Achievements from './pages/Achievements'
 import AiTutor from './pages/AiTutor'
+import NotionTasks from './pages/NotionTasks'
+import AiCoach from './pages/AiCoach'
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
           <Route path="/essays/:id" element={<EssayEditor />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/tutor" element={<AiTutor />} />
+          <Route path="/notion-tasks" element={<NotionTasks />} />
+          <Route path="/ai-coach" element={<AiCoach />} />
         </Routes>
       </main>
     </div>

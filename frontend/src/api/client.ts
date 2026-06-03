@@ -61,6 +61,22 @@ export const updateAchievement = (id: number, data: Partial<Achievement>) =>
 export const deleteAchievement = (id: number) =>
   req(`/achievements/${id}`, { method: 'DELETE' })
 
+// Notion Tasks
+export const getNotionTasks = (status?: string) =>
+  req<NotionTask[]>(`/notion/tasks${status ? `?status=${status}` : ''}`)
+export const createNotionTask = (data: { title: string; due_date?: string; priority?: string }) =>
+  req<NotionTask>('/notion/tasks', { method: 'POST', body: JSON.stringify(data) })
+export const updateNotionTaskStatus = (id: string, status: string) =>
+  req<NotionTask>(`/notion/tasks/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) })
+export const getTodayNotionTasks = () =>
+  req<{ completed: NotionTask[]; incomplete: NotionTask[] }>('/notion/tasks/today')
+
+// AI Coach
+export const getCoachAnalysis = () => req<{ result: string; task_count: number }>('/coach/analyze')
+export const getCoachOptimize = () => req<{ result: string; task_count: number }>('/coach/optimize')
+export const getCoachReview = () =>
+  req<{ result: string; completed_count: number; incomplete_count: number }>('/coach/review')
+
 // AI Tutor
 export const getChatMessages = () => req<ChatMessage[]>('/ai/messages')
 export const sendChat = (content: string) =>
@@ -127,6 +143,14 @@ export interface Achievement {
   evidence_url?: string
   validation_contact?: string
   created_at: string
+}
+
+export interface NotionTask {
+  id: string
+  title: string
+  status: string
+  priority: string
+  due_date: string
 }
 
 export interface ChatMessage {
