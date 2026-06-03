@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from models import Task, Goal, Milestone, Essay, Achievement, ChatMessage
 from routers import tasks, goals, milestones, essays, achievements, ai_tutor
+from routers import line_webhook
 from seed import seed_initial_data
 
 Base.metadata.create_all(bind=engine)
@@ -24,6 +25,7 @@ app.include_router(milestones.router)
 app.include_router(essays.router)
 app.include_router(achievements.router)
 app.include_router(ai_tutor.router)
+app.include_router(line_webhook.router)
 
 
 @app.get("/api/health")
